@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Header } from './components/Header';
+import { LandingPage } from './components/LandingPage';
 import { GiftForm } from './components/GiftForm';
 import { GiftResults } from './components/GiftResults';
 import { Loading } from './components/Loading';
@@ -8,7 +9,8 @@ import { GiftIdea, RecipientProfile, AppState } from './types';
 import { AlertCircle } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [appState, setAppState] = useState<AppState>(AppState.IDLE);
+  // Start at LANDING page
+  const [appState, setAppState] = useState<AppState>(AppState.LANDING);
   const [giftIdeas, setGiftIdeas] = useState<GiftIdea[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -28,6 +30,7 @@ const App: React.FC = () => {
   };
 
   const handleReset = () => {
+    // Return to IDLE (Form) state when resetting from results
     setAppState(AppState.IDLE);
     setGiftIdeas([]);
     setErrorMsg(null);
@@ -40,6 +43,10 @@ const App: React.FC = () => {
         <Header />
 
         <main className="flex-grow flex flex-col px-6 pb-12 pt-4">
+            
+            {appState === AppState.LANDING && (
+                <LandingPage onStart={() => setAppState(AppState.IDLE)} />
+            )}
             
             {appState === AppState.IDLE && (
                 <GiftForm onSubmit={handleFormSubmit} isLoading={false} />

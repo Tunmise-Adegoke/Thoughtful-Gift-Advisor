@@ -18,6 +18,7 @@ export interface GiftIdea {
 }
 
 export enum AppState {
+  LANDING = 'LANDING',
   IDLE = 'IDLE',
   LOADING = 'LOADING',
   SUCCESS = 'SUCCESS',
