@@ -1,0 +1,5 @@
+{
+  "name": "Thoughtful Gift Advisor",
+  "description": "A personalized gift recommendation engine powered by Gemini AI that suggests unique and meaningful gifts based on recipient profiles.",
+  "requestFramePermissions": []
+}
