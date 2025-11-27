@@ -3,6 +3,7 @@ export interface RecipientProfile {
   relation: string;
   customRelation?: string;
   age: string;
+  gender: string;
   interests: string;
   occasion: string;
   budget: string;

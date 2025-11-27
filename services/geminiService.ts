@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { GiftIdea, RecipientProfile } from "../types";
 
@@ -43,7 +44,8 @@ export const generateGiftIdeas = async (profile: RecipientProfile): Promise<Gift
 
   const prompt = `
     I need 7 specific, personalized, and purchasable gift ideas for the following person:
-    - Who (Age/Demographic): ${profile.age}
+    - Age: ${profile.age}
+    - Gender: ${profile.gender}
     - Relationship to giver: ${finalRelation}
     - Occasion: ${profile.occasion}
     - Taste/Style: ${profile.taste}

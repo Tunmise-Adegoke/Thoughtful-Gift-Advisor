@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { RecipientProfile } from '../types';
 import { ArrowRight, ArrowLeft, Check, Minus, Plus } from 'lucide-react';
@@ -7,6 +8,7 @@ interface GiftFormProps {
   isLoading: boolean;
 }
 
+const GENDERS = ['Female', 'Male', 'Non-binary'];
 const RELATIONSHIPS = ['Family', 'Parent', 'Friend', 'Sibling', 'Colleague', 'Spouse', 'Child', 'Other'];
 const OCCASIONS = [
   'Birthday', 
@@ -79,6 +81,7 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
     relation: '',
     customRelation: '',
     age: '',
+    gender: '',
     interests: '',
     occasion: '',
     budget: '',
@@ -128,10 +131,12 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
   const isStepValid = () => {
     switch (step) {
       case 1: 
+        // Validate Age, Gender, and Relationship
+        const basicValid = formData.age.trim() !== '' && formData.gender !== '';
         if (formData.relation === 'Other') {
-            return formData.age.trim() !== '' && (formData.customRelation?.trim() || '').length > 0;
+            return basicValid && (formData.customRelation?.trim() || '').length > 0;
         }
-        return formData.age.trim() !== '' && formData.relation !== '';
+        return basicValid && formData.relation !== '';
       case 2: return formData.occasion !== '' && formData.taste !== '';
       case 3: return budgetAmount > 0; // Valid as long as there is a value
       case 4: return formData.interests.trim() !== '';
@@ -157,20 +162,38 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
         
         {/* Step 1: Who & Relation */}
         {step === 1 && (
-          <div className="flex-1 animate-slide-up space-y-10">
+          <div className="flex-1 animate-slide-up space-y-8">
             <div className="space-y-4">
-                <h2 className="font-serif text-4xl text-white leading-tight">First things first,<br/>who is this for?</h2>
-                <input
-                    type="text"
-                    value={formData.age}
-                    onChange={(e) => handleChange('age', e.target.value)}
-                    placeholder="e.g. My 25 year old sister..."
-                    className="w-full bg-transparent border-b border-gray-800 py-4 text-xl text-white placeholder-gray-600 focus:outline-none focus:border-white transition-colors"
-                    autoFocus
-                />
+                <h2 className="font-serif text-4xl text-white leading-tight">First things first,<br/>tell us about them.</h2>
+                
+                <div className="space-y-2">
+                    <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">Age</p>
+                    <input
+                        type="text"
+                        value={formData.age}
+                        onChange={(e) => handleChange('age', e.target.value)}
+                        placeholder="e.g. 25 years old"
+                        className="w-full bg-transparent border-b border-gray-800 py-3 text-xl text-white placeholder-gray-600 focus:outline-none focus:border-white transition-colors"
+                        autoFocus
+                    />
+                </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
+                <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">Gender</p>
+                <div className="flex flex-wrap gap-3">
+                    {GENDERS.map(g => (
+                        <Pill 
+                            key={g} 
+                            label={g} 
+                            selected={formData.gender === g}
+                            onClick={() => handleChange('gender', g)}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
                 <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">Relationship to you</p>
                 <div className="flex flex-wrap gap-3">
                     {RELATIONSHIPS.map(rel => (
@@ -192,7 +215,6 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
                             onChange={(e) => handleChange('customRelation', e.target.value)}
                             placeholder="Please specify relationship..."
                             className="w-full bg-transparent border-b border-gray-800 py-2 text-lg text-white placeholder-gray-600 focus:outline-none focus:border-white transition-colors"
-                            autoFocus
                         />
                     </div>
                 )}
