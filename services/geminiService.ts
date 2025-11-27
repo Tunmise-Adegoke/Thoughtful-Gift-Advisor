@@ -33,7 +33,7 @@ const giftSchema: Schema = {
 
 export const generateGiftIdeas = async (profile: RecipientProfile): Promise<GiftIdea[]> => {
   if (!apiKey) {
-    throw new Error("API Key is missing. Please check your environment configuration.");
+    throw new Error("API_KEY_MISSING: The API Key is not configured in the environment.");
   }
 
   // Determine the relationship string to use
@@ -75,14 +75,40 @@ export const generateGiftIdeas = async (profile: RecipientProfile): Promise<Gift
 
     const text = response.text;
     if (!text) {
-      throw new Error("No response received from Gemini.");
+      throw new Error("EMPTY_RESPONSE: The AI returned an empty response. It might have been blocked by safety filters.");
     }
 
-    const ideas: GiftIdea[] = JSON.parse(text);
-    return ideas;
+    // Clean potential markdown code blocks (```json ... ```) which can cause JSON.parse to fail
+    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
-  } catch (error) {
+    try {
+        const ideas: GiftIdea[] = JSON.parse(cleanText);
+        return ideas;
+    } catch (parseError) {
+        console.error("Failed to parse JSON:", cleanText);
+        throw new Error(`PARSING_ERROR: The AI response could not be read. Raw text: ${cleanText.substring(0, 50)}...`);
+    }
+
+  } catch (error: any) {
     console.error("Error generating gifts:", error);
+    
+    // Categorize errors for better UI feedback
+    const msg = error.message || '';
+    
+    if (msg.includes('403') || msg.includes('API key')) {
+        throw new Error("Access Denied: The API Key is invalid or expired.");
+    }
+    if (msg.includes('429')) {
+        throw new Error("System Busy: Too many requests. Please wait a moment and try again.");
+    }
+    if (msg.includes('safety') || msg.includes('blocked')) {
+        throw new Error("Safety Block: The request was flagged by safety filters. Please try modifying the request.");
+    }
+    if (msg.includes('API_KEY_MISSING')) {
+        throw new Error("Configuration Error: API Key is missing.");
+    }
+    
+    // Pass through the original error if it's already specific, otherwise generic
     throw error;
   }
 };

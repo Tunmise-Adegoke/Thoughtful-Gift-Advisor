@@ -24,8 +24,16 @@ const OCCASIONS = [
 const TASTES = [
   'Luxury', 
   'Minimalist', 
-  'DIY/Handmade', 
   'Tech/Gadget', 
+  'Gaming',
+  'Fitness',
+  'Fashion',
+  'Reading',
+  'Travel',
+  'Music',
+  'Outdoors',
+  'Arts & Crafts',
+  'DIY/Handmade', 
   'Practical', 
   'Sentimental', 
   'Fun/Quirky', 
@@ -86,6 +94,17 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
 
   const handleChange = (field: keyof RecipientProfile, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const toggleTaste = (taste: string) => {
+    const currentTastes = formData.taste ? formData.taste.split(', ').filter(t => t) : [];
+    if (currentTastes.includes(taste)) {
+      const newTastes = currentTastes.filter(t => t !== taste);
+      handleChange('taste', newTastes.join(', '));
+    } else {
+      const newTastes = [...currentTastes, taste];
+      handleChange('taste', newTastes.join(', '));
+    }
   };
 
   const handleNext = () => {
@@ -199,14 +218,14 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
             </div>
 
             <div className="space-y-4">
-                <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">What's their vibe/taste?</p>
+                <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">What's their vibe/taste? <span className="text-gray-600 lowercase">(Select all that apply)</span></p>
                 <div className="flex flex-wrap gap-3">
                     {TASTES.map(taste => (
                         <Pill 
                             key={taste} 
                             label={taste} 
-                            selected={formData.taste === taste}
-                            onClick={() => handleChange('taste', taste)}
+                            selected={formData.taste.split(', ').includes(taste)}
+                            onClick={() => toggleTaste(taste)}
                         />
                     ))}
                 </div>
