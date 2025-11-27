@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { RecipientProfile } from '../types';
-import { ArrowRight, ArrowLeft, Check, Minus, Plus } from 'lucide-react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface GiftFormProps {
   onSubmit: (profile: RecipientProfile) => void;
@@ -46,6 +46,43 @@ const TASTES = [
   'Foodie'
 ];
 
+type CurrencyCode = 'NGN' | 'USD' | 'EUR' | 'CAD';
+
+const CURRENCY_CONFIG: Record<CurrencyCode, { symbol: string, min: number, max: number, step: number, default: number, quick: number[] }> = {
+  'NGN': { 
+    symbol: '₦', 
+    min: 5000, 
+    max: 1000000, 
+    step: 5000, 
+    default: 50000,
+    quick: [10000, 50000, 200000]
+  },
+  'USD': { 
+    symbol: '$', 
+    min: 20, 
+    max: 2000, 
+    step: 10, 
+    default: 100,
+    quick: [50, 150, 500]
+  },
+  'EUR': { 
+    symbol: '€', 
+    min: 20, 
+    max: 2000, 
+    step: 10, 
+    default: 100,
+    quick: [50, 150, 500]
+  },
+  'CAD': { 
+    symbol: 'C$', 
+    min: 20, 
+    max: 2000, 
+    step: 10, 
+    default: 100,
+    quick: [50, 150, 500]
+  }
+};
+
 interface PillProps {
   label: string;
   selected: boolean;
@@ -74,8 +111,11 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 4;
   
+  // Currency State
+  const [currency, setCurrency] = useState<CurrencyCode>('NGN');
+  
   // Local state for the slider value (numeric)
-  const [budgetAmount, setBudgetAmount] = useState<number>(25000);
+  const [budgetAmount, setBudgetAmount] = useState<number>(CURRENCY_CONFIG['NGN'].default);
 
   const [formData, setFormData] = useState<RecipientProfile>({
     relation: '',
@@ -85,15 +125,23 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
     interests: '',
     occasion: '',
     budget: '',
+    currency: 'NGN',
     taste: '',
     exclusions: ''
   });
 
   // Sync the slider value to the formData string whenever it changes
   useEffect(() => {
-    const formattedBudget = `Around ₦${budgetAmount.toLocaleString()}`;
-    setFormData(prev => ({ ...prev, budget: formattedBudget }));
-  }, [budgetAmount]);
+    const config = CURRENCY_CONFIG[currency];
+    const formattedBudget = `Around ${config.symbol}${budgetAmount.toLocaleString()}`;
+    setFormData(prev => ({ ...prev, budget: formattedBudget, currency: currency }));
+  }, [budgetAmount, currency]);
+
+  const handleCurrencyChange = (newCurrency: CurrencyCode) => {
+    setCurrency(newCurrency);
+    // Reset budget amount to the default for the new currency to avoid out-of-range values
+    setBudgetAmount(CURRENCY_CONFIG[newCurrency].default);
+  };
 
   const handleChange = (field: keyof RecipientProfile, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -123,8 +171,17 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
     onSubmit(formData);
   };
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(val);
+  const formatCurrency = (val: number, curr: CurrencyCode) => {
+    // Simple formatter for display
+    const config = CURRENCY_CONFIG[curr];
+    return `${config.symbol}${val.toLocaleString()}`;
+  };
+
+  const formatShortCurrency = (val: number, curr: CurrencyCode) => {
+    const config = CURRENCY_CONFIG[curr];
+    if (val >= 1000000) return `${config.symbol}${(val/1000000).toFixed(0)}M`;
+    if (val >= 1000) return `${config.symbol}${(val/1000).toFixed(0)}k`;
+    return `${config.symbol}${val}`;
   };
 
   // Helper to check if current step is valid to proceed
@@ -143,6 +200,8 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
       default: return false;
     }
   };
+
+  const currentConfig = CURRENCY_CONFIG[currency];
 
   return (
     <div className="w-full max-w-lg mx-auto min-h-[500px] flex flex-col">
@@ -260,41 +319,65 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
           <div className="flex-1 animate-slide-up space-y-12">
             <div className="space-y-2">
                 <h2 className="font-serif text-4xl text-white leading-tight">What is your<br/>budget?</h2>
-                <p className="text-gray-500 text-sm">Use the slider to set a target price.</p>
+                <p className="text-gray-500 text-sm">Select currency and set a target price.</p>
+            </div>
+
+            {/* Currency Selector */}
+            <div className="flex gap-2 justify-center">
+                {(['NGN', 'USD', 'EUR', 'CAD'] as CurrencyCode[]).map(c => (
+                     <button
+                        key={c}
+                        type="button"
+                        onClick={() => handleCurrencyChange(c)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-300 border ${
+                            currency === c
+                            ? 'bg-white text-black border-white' 
+                            : 'bg-transparent text-gray-500 border-gray-800 hover:border-gray-600'
+                        }`}
+                     >
+                        {c}
+                     </button>
+                ))}
             </div>
             
-            <div className="py-8">
+            <div className="py-4">
                 <div className="text-center mb-8">
                     <span className="text-5xl font-serif text-white tracking-tight">
-                        {formatCurrency(budgetAmount)}
+                        {formatCurrency(budgetAmount, currency)}
                     </span>
-                    <p className="text-gray-500 mt-2 text-sm uppercase tracking-widest font-medium">Target Amount</p>
+                    <p className="text-gray-500 mt-2 text-sm uppercase tracking-widest font-medium">Target Amount ({currency})</p>
                 </div>
 
                 <div className="relative w-full h-10 flex items-center">
                     <input 
                         type="range" 
-                        min="5000" 
-                        max="500000" 
-                        step="5000"
+                        min={currentConfig.min}
+                        max={currentConfig.max}
+                        step={currentConfig.step}
                         value={budgetAmount}
                         onChange={(e) => setBudgetAmount(parseInt(e.target.value))}
                         className="w-full z-20"
                     />
-                    {/* Visual Track Overlay for better customization potential if needed, though CSS covers basics */}
                 </div>
 
                 <div className="flex justify-between text-gray-600 text-xs font-medium uppercase tracking-widest mt-2">
-                    <span>₦5k</span>
-                    <span>₦500k+</span>
+                    <span>{formatShortCurrency(currentConfig.min, currency)}</span>
+                    <span>{formatShortCurrency(currentConfig.max, currency)}+</span>
                 </div>
             </div>
 
             {/* Quick Select Buttons */}
             <div className="flex justify-center gap-3">
-                 <button type="button" onClick={() => setBudgetAmount(10000)} className="px-4 py-2 rounded-full border border-gray-800 text-gray-400 text-xs hover:text-white hover:border-gray-600 transition-colors">Low (10k)</button>
-                 <button type="button" onClick={() => setBudgetAmount(50000)} className="px-4 py-2 rounded-full border border-gray-800 text-gray-400 text-xs hover:text-white hover:border-gray-600 transition-colors">Mid (50k)</button>
-                 <button type="button" onClick={() => setBudgetAmount(150000)} className="px-4 py-2 rounded-full border border-gray-800 text-gray-400 text-xs hover:text-white hover:border-gray-600 transition-colors">High (150k)</button>
+                 {currentConfig.quick.map((amt, idx) => (
+                    <button 
+                        key={amt} 
+                        type="button" 
+                        onClick={() => setBudgetAmount(amt)} 
+                        className="px-4 py-2 rounded-full border border-gray-800 text-gray-400 text-xs hover:text-white hover:border-gray-600 transition-colors"
+                    >
+                        {idx === 0 ? 'Low' : idx === 1 ? 'Mid' : 'High'} ({formatShortCurrency(amt, currency)})
+                    </button>
+                 ))}
             </div>
           </div>
         )}

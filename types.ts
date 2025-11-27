@@ -7,6 +7,7 @@ export interface RecipientProfile {
   interests: string;
   occasion: string;
   budget: string;
+  currency: string;
   taste: string;
   exclusions?: string;
 }
