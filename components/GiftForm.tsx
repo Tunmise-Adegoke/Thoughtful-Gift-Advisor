@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { RecipientProfile } from '../types';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
@@ -97,10 +96,10 @@ const Pill: React.FC<PillProps> = ({
   <button
     type="button"
     onClick={onClick}
-    className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border ${
+    className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 shadow-sm ${
       selected 
-        ? 'bg-white text-black border-white' 
-        : 'bg-transparent text-gray-400 border-gray-800 hover:border-gray-500 hover:text-white'
+        ? 'bg-joy-accent text-white border-transparent shadow-md transform scale-105' 
+        : 'bg-white text-gray-600 border border-gray-200 hover:border-joy-accent hover:text-joy-accent'
     }`}
   >
     {label}
@@ -208,10 +207,10 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
       
       {/* Progress Indicator */}
       <div className="flex items-center gap-2 mb-10 px-1">
-         <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">Step {step}/{totalSteps}</span>
-         <div className="flex-1 h-[1px] bg-gray-900">
+         <span className="text-[10px] font-bold tracking-widest text-joy-muted uppercase">Step {step}/{totalSteps}</span>
+         <div className="flex-1 h-[2px] bg-gray-200 rounded-full">
             <div 
-                className="h-full bg-white transition-all duration-500 ease-out" 
+                className="h-full bg-joy-accent rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(255,90,95,0.5)]" 
                 style={{ width: `${(step / totalSteps) * 100}%` }}
             />
          </div>
@@ -223,23 +222,23 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
         {step === 1 && (
           <div className="flex-1 animate-slide-up space-y-8">
             <div className="space-y-4">
-                <h2 className="font-serif text-4xl text-white leading-tight">First things first,<br/>tell us about them.</h2>
+                <h2 className="font-serif text-4xl text-joy-text leading-tight">First things first,<br/>tell us about them.</h2>
                 
                 <div className="space-y-2">
-                    <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">Age</p>
+                    <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">Age</p>
                     <input
                         type="text"
                         value={formData.age}
                         onChange={(e) => handleChange('age', e.target.value)}
                         placeholder="e.g. 25 years old"
-                        className="w-full bg-transparent border-b border-gray-800 py-3 text-xl text-white placeholder-gray-600 focus:outline-none focus:border-white transition-colors"
+                        className="w-full bg-transparent border-b border-gray-300 py-3 text-xl text-joy-text placeholder-gray-400 focus:outline-none focus:border-joy-accent transition-colors"
                         autoFocus
                     />
                 </div>
             </div>
 
             <div className="space-y-3">
-                <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">Gender</p>
+                <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">Gender</p>
                 <div className="flex flex-wrap gap-3">
                     {GENDERS.map(g => (
                         <Pill 
@@ -253,7 +252,7 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
             </div>
 
             <div className="space-y-3 pt-2">
-                <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">Relationship to you</p>
+                <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">Relationship to you</p>
                 <div className="flex flex-wrap gap-3">
                     {RELATIONSHIPS.map(rel => (
                         <Pill 
@@ -273,7 +272,7 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
                             value={formData.customRelation}
                             onChange={(e) => handleChange('customRelation', e.target.value)}
                             placeholder="Please specify relationship..."
-                            className="w-full bg-transparent border-b border-gray-800 py-2 text-lg text-white placeholder-gray-600 focus:outline-none focus:border-white transition-colors"
+                            className="w-full bg-transparent border-b border-gray-300 py-2 text-lg text-joy-text placeholder-gray-400 focus:outline-none focus:border-joy-accent transition-colors"
                         />
                     </div>
                 )}
@@ -285,7 +284,7 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
         {step === 2 && (
           <div className="flex-1 animate-slide-up space-y-10">
             <div className="space-y-4">
-                <h2 className="font-serif text-4xl text-white leading-tight">What's the<br/>occasion?</h2>
+                <h2 className="font-serif text-4xl text-joy-text leading-tight">What's the<br/>occasion?</h2>
                 <div className="flex flex-wrap gap-3">
                     {OCCASIONS.map(occ => (
                         <Pill 
@@ -299,7 +298,7 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
             </div>
 
             <div className="space-y-4">
-                <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">What's their vibe/taste? <span className="text-gray-600 lowercase">(Select all that apply)</span></p>
+                <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">What's their vibe/taste? <span className="text-joy-accent lowercase">(Select all that apply)</span></p>
                 <div className="flex flex-wrap gap-3">
                     {TASTES.map(taste => (
                         <Pill 
@@ -318,7 +317,7 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
         {step === 3 && (
           <div className="flex-1 animate-slide-up space-y-12">
             <div className="space-y-2">
-                <h2 className="font-serif text-4xl text-white leading-tight">What is your<br/>budget?</h2>
+                <h2 className="font-serif text-4xl text-joy-text leading-tight">What is your<br/>budget?</h2>
                 <p className="text-gray-500 text-sm">Select currency and set a target price.</p>
             </div>
 
@@ -329,10 +328,10 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
                         key={c}
                         type="button"
                         onClick={() => handleCurrencyChange(c)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-300 border ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-300 border shadow-sm ${
                             currency === c
-                            ? 'bg-white text-black border-white' 
-                            : 'bg-transparent text-gray-500 border-gray-800 hover:border-gray-600'
+                            ? 'bg-joy-accent text-white border-transparent shadow-md' 
+                            : 'bg-white text-gray-500 border-gray-200 hover:border-joy-accent hover:text-joy-accent'
                         }`}
                      >
                         {c}
@@ -342,10 +341,10 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
             
             <div className="py-4">
                 <div className="text-center mb-8">
-                    <span className="text-5xl font-serif text-white tracking-tight">
+                    <span className="text-5xl font-serif text-joy-text tracking-tight">
                         {formatCurrency(budgetAmount, currency)}
                     </span>
-                    <p className="text-gray-500 mt-2 text-sm uppercase tracking-widest font-medium">Target Amount ({currency})</p>
+                    <p className="text-gray-400 mt-2 text-sm uppercase tracking-widest font-medium">Target Amount ({currency})</p>
                 </div>
 
                 <div className="relative w-full h-10 flex items-center">
@@ -360,7 +359,7 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
                     />
                 </div>
 
-                <div className="flex justify-between text-gray-600 text-xs font-medium uppercase tracking-widest mt-2">
+                <div className="flex justify-between text-gray-400 text-xs font-medium uppercase tracking-widest mt-2">
                     <span>{formatShortCurrency(currentConfig.min, currency)}</span>
                     <span>{formatShortCurrency(currentConfig.max, currency)}+</span>
                 </div>
@@ -373,7 +372,7 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
                         key={amt} 
                         type="button" 
                         onClick={() => setBudgetAmount(amt)} 
-                        className="px-4 py-2 rounded-full border border-gray-800 text-gray-400 text-xs hover:text-white hover:border-gray-600 transition-colors"
+                        className="px-4 py-2 rounded-full border border-gray-200 bg-white text-gray-500 text-xs hover:border-joy-accent hover:text-joy-accent transition-colors shadow-sm"
                     >
                         {idx === 0 ? 'Low' : idx === 1 ? 'Mid' : 'High'} ({formatShortCurrency(amt, currency)})
                     </button>
@@ -386,7 +385,7 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
         {step === 4 && (
           <div className="flex-1 animate-slide-up space-y-8">
              <div className="space-y-2">
-                <h2 className="font-serif text-4xl text-white leading-tight">Finally,<br/>tell us what they love.</h2>
+                <h2 className="font-serif text-4xl text-joy-text leading-tight">Finally,<br/>tell us what they love.</h2>
                 <p className="text-gray-500 text-sm">Hobbies, specific obsessions, favorite shows, etc.</p>
              </div>
 
@@ -394,29 +393,29 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
                 value={formData.interests}
                 onChange={(e) => handleChange('interests', e.target.value)}
                 placeholder="e.g. They love cooking Italian food, watching Sci-Fi movies, and collecting vintage vinyls..."
-                className="w-full h-32 bg-[#111] border border-gray-800 rounded-2xl p-5 text-lg text-white placeholder-gray-600 focus:outline-none focus:border-white transition-colors resize-none"
+                className="w-full h-32 bg-white border border-gray-200 rounded-2xl p-5 text-lg text-joy-text placeholder-gray-400 focus:outline-none focus:border-joy-accent focus:ring-1 focus:ring-joy-accent transition-all resize-none shadow-sm"
              />
 
              <div className="space-y-2 pt-2">
-                <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">Any deal-breakers? (Optional)</p>
+                <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">Any deal-breakers? (Optional)</p>
                 <input
                     type="text"
                     value={formData.exclusions}
                     onChange={(e) => handleChange('exclusions', e.target.value)}
                     placeholder="e.g. No alcohol, avoid clothing, no plastic..."
-                    className="w-full bg-transparent border-b border-gray-800 py-3 text-lg text-white placeholder-gray-600 focus:outline-none focus:border-white transition-colors"
+                    className="w-full bg-transparent border-b border-gray-300 py-3 text-lg text-joy-text placeholder-gray-400 focus:outline-none focus:border-joy-accent transition-colors"
                 />
              </div>
           </div>
         )}
 
         {/* Navigation Buttons */}
-        <div className="mt-8 flex items-center justify-between pt-6 border-t border-gray-900">
+        <div className="mt-8 flex items-center justify-between pt-6 border-t border-gray-200">
            {step > 1 ? (
              <button 
                 type="button" 
                 onClick={handleBack}
-                className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors px-2 py-2"
+                className="flex items-center gap-2 text-gray-500 hover:text-joy-text transition-colors px-2 py-2"
              >
                 <ArrowLeft size={20} />
                 <span className="font-medium">Back</span>
@@ -430,10 +429,10 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
                 type="button"
                 onClick={handleNext}
                 disabled={!isStepValid()}
-                className={`flex items-center gap-3 px-8 py-3 rounded-full font-medium transition-all duration-300 ${
+                className={`flex items-center gap-3 px-8 py-3 rounded-full font-medium transition-all duration-300 shadow-md ${
                     isStepValid() 
-                    ? 'bg-white text-black hover:scale-105' 
-                    : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                    ? 'bg-joy-accent text-white hover:bg-red-500 hover:scale-105' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
                 <span>Next</span>
@@ -443,10 +442,10 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
               <button
                 type="submit"
                 disabled={!isStepValid() || isLoading}
-                className={`flex items-center gap-3 px-8 py-3 rounded-full font-medium transition-all duration-300 ${
+                className={`flex items-center gap-3 px-8 py-3 rounded-full font-medium transition-all duration-300 shadow-md ${
                     (isStepValid() && !isLoading)
-                    ? 'bg-white text-black hover:scale-105' 
-                    : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                    ? 'bg-joy-accent text-white hover:bg-red-500 hover:scale-105' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
                 <span>{isLoading ? 'Thinking...' : 'Find Gifts'}</span>

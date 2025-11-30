@@ -1,10 +1,6 @@
-
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { GiftIdea, RecipientProfile } from "../types";
-
-const apiKey = process.env.API_KEY || '';
-
-const ai = new GoogleGenAI({ apiKey });
+import { APP_CONFIG } from "../config";
 
 const giftSchema: Schema = {
   type: Type.ARRAY,
@@ -21,21 +17,34 @@ const giftSchema: Schema = {
       },
       retailer: {
         type: Type.STRING,
-        description: "A specific brand name, website, or type of store to buy it from. If the currency is NGN, prefer Nigerian vendors like Jumia, Konga, or Instagram vendors. If USD/EUR/CAD, suggest global retailers like Amazon or relevant local stores."
+        description: "A specific brand name, website, or type of store to buy it from."
       },
       estimatedPrice: {
         type: Type.STRING,
-        description: "The approximate price range in the user's selected currency (e.g., '₦15,000 - ₦20,000' or '$50 - $100')."
+        description: "The approximate price range in the user's selected currency."
+      },
+      imageKeyword: {
+        type: Type.STRING,
+        description: "A precise search query string to find a photo of this specific product (e.g. 'Sony WH-1000XM5 silver', 'Kindle Paperwhite signature edition', 'Le Creuset Dutch Oven Orange'). Be specific to get the best image."
       }
     },
-    required: ["title", "reason", "retailer", "estimatedPrice"]
+    required: ["title", "reason", "retailer", "estimatedPrice", "imageKeyword"]
   }
 };
 
+// Helper to generate consistent image URLs
+export const generateImageUrl = (keyword: string): string => {
+    return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(keyword)}&w=400&h=300&c=7&rs=1&p=0`;
+};
+
 export const generateGiftIdeas = async (profile: RecipientProfile): Promise<GiftIdea[]> => {
+  const apiKey = APP_CONFIG.GEMINI_API_KEY;
+
   if (!apiKey) {
     throw new Error("API_KEY_MISSING: The API Key is not configured in the environment.");
   }
+
+  const ai = new GoogleGenAI({ apiKey });
 
   // Determine the relationship string to use
   const finalRelation = profile.relation === 'Other' && profile.customRelation
@@ -54,10 +63,7 @@ export const generateGiftIdeas = async (profile: RecipientProfile): Promise<Gift
     - Key Interests/Hobbies: ${profile.interests}
     - Exclusions (DO NOT SUGGEST THESE): ${profile.exclusions || 'None'}
 
-    Be creative. Avoid generic gift cards unless specifically relevant to a hobby. 
-    Focus on items that feel personal and thoughtful.
-    
-    Budget Note: The user has provided a target budget in ${profile.currency}. Please suggest items that are approximately around this price point. Slightly cheaper is fine. Slightly more expensive (up to 20%) is okay if the gift is perfect.
+    Be creative. Avoid generic gift cards. Focus on items that feel personal and thoughtful.
     
     The budget is in ${profile.currency}. Please suggest items available to purchase in regions using this currency or globally available items with prices converted to ${profile.currency}.
     The 'reason' should be a single, compelling sentence connecting the gift to their specific interests and taste.
@@ -72,46 +78,43 @@ export const generateGiftIdeas = async (profile: RecipientProfile): Promise<Gift
       config: {
         responseMimeType: "application/json",
         responseSchema: giftSchema,
-        systemInstruction: "You are a world-class gift concierge familiar with global gift trends and local markets. Your goal is to find gifts that make people say 'Wow, you really know me!'. Provide 7 distinct ideas."
+        systemInstruction: "You are a world-class gift concierge. Your goal is to find gifts that make people say 'Wow, you really know me!'. Provide 7 distinct ideas."
       }
     });
 
     const text = response.text;
     if (!text) {
-      throw new Error("EMPTY_RESPONSE: The AI returned an empty response. It might have been blocked by safety filters.");
+      throw new Error("EMPTY_RESPONSE: The AI returned an empty response.");
     }
 
-    // Clean potential markdown code blocks (```json ... ```) which can cause JSON.parse to fail
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
     try {
-        const ideas: GiftIdea[] = JSON.parse(cleanText);
+        const rawIdeas: GiftIdea[] = JSON.parse(cleanText);
+        
+        // Enhance ideas with real search images
+        const ideas = rawIdeas.map(idea => ({
+            ...idea,
+            // Use the shared helper function
+            imageUrl: generateImageUrl(idea.imageKeyword)
+        }));
+
         return ideas;
     } catch (parseError) {
         console.error("Failed to parse JSON:", cleanText);
-        throw new Error(`PARSING_ERROR: The AI response could not be read. Raw text: ${cleanText.substring(0, 50)}...`);
+        throw new Error(`PARSING_ERROR: The AI response could not be read.`);
     }
 
   } catch (error: any) {
     console.error("Error generating gifts:", error);
     
-    // Categorize errors for better UI feedback
     const msg = error.message || '';
     
-    if (msg.includes('403') || msg.includes('API key')) {
-        throw new Error("Access Denied: The API Key is invalid or expired.");
-    }
-    if (msg.includes('429')) {
-        throw new Error("System Busy: Too many requests. Please wait a moment and try again.");
-    }
-    if (msg.includes('safety') || msg.includes('blocked')) {
-        throw new Error("Safety Block: The request was flagged by safety filters. Please try modifying the request.");
-    }
-    if (msg.includes('API_KEY_MISSING')) {
-        throw new Error("Configuration Error: API Key is missing.");
-    }
+    if (msg.includes('403') || msg.includes('API key')) throw new Error("Access Denied: The API Key is invalid or expired.");
+    if (msg.includes('429')) throw new Error("System Busy: Too many requests. Please wait a moment and try again.");
+    if (msg.includes('safety') || msg.includes('blocked')) throw new Error("Safety Block: The request was flagged by safety filters.");
+    if (msg.includes('API_KEY_MISSING')) throw new Error("API_KEY_MISSING");
     
-    // Pass through the original error if it's already specific, otherwise generic
     throw error;
   }
 };

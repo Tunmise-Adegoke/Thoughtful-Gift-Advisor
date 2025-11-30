@@ -17,6 +17,8 @@ export interface GiftIdea {
   reason: string;
   retailer: string;
   estimatedPrice: string;
+  imageKeyword: string; // Used to generate the image
+  imageUrl?: string;    // The constructed URL
 }
 
 export enum AppState {
