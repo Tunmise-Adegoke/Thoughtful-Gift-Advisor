@@ -58,6 +58,7 @@ const GiftCardItem: React.FC<{
                         className={`w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105 
                             ${imageStatus === 'loaded' ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-lg scale-110'}`}
                         loading="lazy"
+                        decoding="async"
                         onLoad={handleImageLoad}
                         onError={handleImageError}
                     />
@@ -68,14 +69,26 @@ const GiftCardItem: React.FC<{
                     {gift.estimatedPrice}
                 </div>
 
-                {/* Like Button Overlay */}
+                {/* Like Button Overlay - Enhanced with Visual Feedback */}
                 <button 
-                    onClick={toggleLike}
-                    className="absolute top-6 right-6 p-2.5 rounded-full bg-white/95 backdrop-blur-sm shadow-sm hover:bg-red-50 transition-colors z-10 group-hover:scale-105 duration-300"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleLike();
+                    }}
+                    className={`absolute top-6 right-6 p-3 rounded-full shadow-sm transition-all duration-300 z-10 active:scale-90 ${
+                        isLiked 
+                            ? 'bg-joy-accent shadow-lg shadow-red-200 scale-110' 
+                            : 'bg-white/95 backdrop-blur-sm hover:bg-red-50 hover:scale-105'
+                    }`}
+                    title={isLiked ? "Remove from favorites" : "Save to favorites"}
                 >
                     <Heart 
                         size={20} 
-                        className={`transition-colors duration-300 ${isLiked ? 'fill-joy-accent text-joy-accent' : 'text-gray-400'}`} 
+                        className={`transition-all duration-300 ${
+                            isLiked 
+                                ? 'fill-white text-white' 
+                                : 'text-gray-400'
+                        }`} 
                     />
                 </button>
             </div>

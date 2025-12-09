@@ -10,6 +10,7 @@ export interface RecipientProfile {
   currency: string;
   taste: string;
   exclusions?: string;
+  isAcquaintance?: boolean; // New flag for "I don't know them well"
 }
 
 export interface GiftIdea {

@@ -1,26 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { RecipientProfile } from '../types';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, HelpCircle, Check } from 'lucide-react';
 
 interface GiftFormProps {
   onSubmit: (profile: RecipientProfile) => void;
   isLoading: boolean;
 }
 
+const AGE_GROUPS = [
+  'Baby (0-12m)',
+  'Toddler (1-3y)',
+  'Child (4-9y)',
+  'Pre-teen (10-12y)',
+  'Teen (13-17y)',
+  'Young Adult (18-25y)',
+  'Adult (26-49y)',
+  'Senior (50+y)'
+];
+
 const GENDERS = ['Female', 'Male', 'Non-binary'];
 const RELATIONSHIPS = ['Family', 'Parent', 'Friend', 'Sibling', 'Colleague', 'Spouse', 'Child', 'Other'];
 const OCCASIONS = [
   'Birthday', 
+  'Christmas',
   'Holiday', 
   'Anniversary', 
+  "Valentine's",
   'Wedding', 
+  "Mother's Day",
+  "Father's Day",
   'Graduation', 
   'Retirement', 
+  'Eid',
+  'Diwali',
+  'Hanukkah',
+  'Easter',
+  'Thanksgiving',
+  'Halloween',
+  'New Year',
   'Expecting Parents',
   'New Job',
   'Housewarming', 
-  'Just Because', 
-  "Valentine's"
+  'Just Because'
 ];
 const TASTES = [
   'Luxury', 
@@ -45,7 +66,7 @@ const TASTES = [
   'Foodie'
 ];
 
-type CurrencyCode = 'NGN' | 'USD' | 'EUR' | 'CAD';
+type CurrencyCode = 'NGN' | 'USD' | 'EUR' | 'GBP' | 'CAD';
 
 const CURRENCY_CONFIG: Record<CurrencyCode, { symbol: string, min: number, max: number, step: number, default: number, quick: number[] }> = {
   'NGN': { 
@@ -72,6 +93,14 @@ const CURRENCY_CONFIG: Record<CurrencyCode, { symbol: string, min: number, max: 
     default: 100,
     quick: [50, 150, 500]
   },
+  'GBP': { 
+    symbol: '£', 
+    min: 20, 
+    max: 2000, 
+    step: 10, 
+    default: 100,
+    quick: [50, 150, 500]
+  },
   'CAD': { 
     symbol: 'C$', 
     min: 20, 
@@ -86,12 +115,14 @@ interface PillProps {
   label: string;
   selected: boolean;
   onClick: () => void;
+  className?: string;
 }
 
 const Pill: React.FC<PillProps> = ({ 
   label, 
   selected, 
-  onClick 
+  onClick,
+  className = ''
 }) => (
   <button
     type="button"
@@ -100,7 +131,7 @@ const Pill: React.FC<PillProps> = ({
       selected 
         ? 'bg-joy-accent text-white border-transparent shadow-md transform scale-105' 
         : 'bg-white text-gray-600 border border-gray-200 hover:border-joy-accent hover:text-joy-accent'
-    }`}
+    } ${className}`}
   >
     {label}
   </button>
@@ -126,7 +157,8 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
     budget: '',
     currency: 'NGN',
     taste: '',
-    exclusions: ''
+    exclusions: '',
+    isAcquaintance: false
   });
 
   // Sync the slider value to the formData string whenever it changes
@@ -142,7 +174,7 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
     setBudgetAmount(CURRENCY_CONFIG[newCurrency].default);
   };
 
-  const handleChange = (field: keyof RecipientProfile, value: string) => {
+  const handleChange = (field: keyof RecipientProfile, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -224,15 +256,25 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
             <div className="space-y-4">
                 <h2 className="font-serif text-4xl text-joy-text leading-tight">First things first,<br/>tell us about them.</h2>
                 
-                <div className="space-y-2">
-                    <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">Age</p>
+                <div className="space-y-3">
+                    <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">Age Group</p>
+                    <div className="flex flex-wrap gap-2">
+                        {AGE_GROUPS.map(age => (
+                            <Pill
+                                key={age}
+                                label={age}
+                                selected={formData.age === age}
+                                onClick={() => handleChange('age', age)}
+                                className="px-4 py-2 text-xs"
+                            />
+                        ))}
+                    </div>
                     <input
                         type="text"
                         value={formData.age}
                         onChange={(e) => handleChange('age', e.target.value)}
-                        placeholder="e.g. 25 years old"
-                        className="w-full bg-transparent border-b border-gray-300 py-3 text-xl text-joy-text placeholder-gray-400 focus:outline-none focus:border-joy-accent transition-colors"
-                        autoFocus
+                        placeholder="Or type specific age (e.g. 25)..."
+                        className="w-full bg-transparent border-b border-gray-300 py-2 text-sm text-joy-text placeholder-gray-400 focus:outline-none focus:border-joy-accent transition-colors"
                     />
                 </div>
             </div>
@@ -277,6 +319,27 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
                     </div>
                 )}
             </div>
+
+            {/* Acquaintance Toggle */}
+            <div 
+                className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
+                    formData.isAcquaintance 
+                    ? 'bg-blue-50 border-blue-200 shadow-sm' 
+                    : 'bg-gray-50 border-transparent hover:bg-gray-100'
+                }`}
+                onClick={() => handleChange('isAcquaintance', !formData.isAcquaintance)}
+            >
+                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                    formData.isAcquaintance ? 'bg-blue-500 border-blue-500' : 'border-gray-400 bg-white'
+                }`}>
+                    {formData.isAcquaintance && <Check size={14} className="text-white" />}
+                </div>
+                <div>
+                    <span className="block text-sm font-semibold text-joy-text">I don't know them very well</span>
+                    <span className="block text-xs text-gray-500">We'll suggest safer, crowd-pleasing options.</span>
+                </div>
+            </div>
+
           </div>
         )}
 
@@ -298,7 +361,10 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
             </div>
 
             <div className="space-y-4">
-                <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">What's their vibe/taste? <span className="text-joy-accent lowercase">(Select all that apply)</span></p>
+                <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">
+                    {formData.isAcquaintance ? "What is their general vibe?" : "What's their vibe/taste?"} 
+                    <span className="text-joy-accent lowercase"> (Select all that apply)</span>
+                </p>
                 <div className="flex flex-wrap gap-3">
                     {TASTES.map(taste => (
                         <Pill 
@@ -323,7 +389,7 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
 
             {/* Currency Selector */}
             <div className="flex gap-2 justify-center">
-                {(['NGN', 'USD', 'EUR', 'CAD'] as CurrencyCode[]).map(c => (
+                {(['NGN', 'USD', 'EUR', 'GBP', 'CAD'] as CurrencyCode[]).map(c => (
                      <button
                         key={c}
                         type="button"
@@ -385,14 +451,23 @@ export const GiftForm: React.FC<GiftFormProps> = ({ onSubmit, isLoading }) => {
         {step === 4 && (
           <div className="flex-1 animate-slide-up space-y-8">
              <div className="space-y-2">
-                <h2 className="font-serif text-4xl text-joy-text leading-tight">Finally,<br/>tell us what they love.</h2>
-                <p className="text-gray-500 text-sm">Hobbies, specific obsessions, favorite shows, etc.</p>
+                <h2 className="font-serif text-4xl text-joy-text leading-tight">
+                    {formData.isAcquaintance ? "Help us narrow it down." : "Finally, tell us what they love."}
+                </h2>
+                <p className="text-gray-500 text-sm">
+                    {formData.isAcquaintance 
+                        ? "Since you don't know them well, tell us their job title, or general personality." 
+                        : "Hobbies, specific obsessions, favorite shows, etc."}
+                </p>
              </div>
 
              <textarea
                 value={formData.interests}
                 onChange={(e) => handleChange('interests', e.target.value)}
-                placeholder="e.g. They love cooking Italian food, watching Sci-Fi movies, and collecting vintage vinyls..."
+                placeholder={formData.isAcquaintance 
+                    ? "e.g. They work in Marketing, they are a busy dad, they just moved into a new apartment..." 
+                    : "e.g. They love cooking Italian food, watching Sci-Fi movies, and collecting vintage vinyls..."
+                }
                 className="w-full h-32 bg-white border border-gray-200 rounded-2xl p-5 text-lg text-joy-text placeholder-gray-400 focus:outline-none focus:border-joy-accent focus:ring-1 focus:ring-joy-accent transition-all resize-none shadow-sm"
              />
 

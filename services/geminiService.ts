@@ -1,6 +1,5 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { GiftIdea, RecipientProfile } from "../types";
-import { APP_CONFIG } from "../config";
 
 const giftSchema: Schema = {
   type: Type.ARRAY,
@@ -25,7 +24,7 @@ const giftSchema: Schema = {
       },
       imageKeyword: {
         type: Type.STRING,
-        description: "A precise search query string to find a photo of this specific product (e.g. 'Sony WH-1000XM5 silver', 'Kindle Paperwhite signature edition', 'Le Creuset Dutch Oven Orange'). Be specific to get the best image."
+        description: "A precise, specific search query for a high-quality product image. Include brand, model, color, and terms like 'product photography' or 'studio shot'. Example: 'Apple AirPods Max Silver product photography', 'Le Creuset Dutch Oven Orange studio shot'."
       }
     },
     required: ["title", "reason", "retailer", "estimatedPrice", "imageKeyword"]
@@ -34,11 +33,18 @@ const giftSchema: Schema = {
 
 // Helper to generate consistent image URLs
 export const generateImageUrl = (keyword: string): string => {
-    return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(keyword)}&w=400&h=300&c=7&rs=1&p=0`;
+    // Using Bing Thumbnail API with high-res parameters for quality
+    // w=1200, h=1200: Increased to high resolution (Square format for flexible cropping)
+    // c=7: Smart crop to center the subject
+    // rs=1: Resize
+    // pid=1.7: Request high quality
+    // mkt=en-US: Market
+    return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(keyword)}&w=1200&h=1200&c=7&rs=1&pid=1.7&mkt=en-US&adlt=moderate`;
 };
 
 export const generateGiftIdeas = async (profile: RecipientProfile): Promise<GiftIdea[]> => {
-  const apiKey = APP_CONFIG.GEMINI_API_KEY;
+  // Access API key directly from environment at runtime
+  const apiKey = process.env.API_KEY;
 
   if (!apiKey) {
     throw new Error("API_KEY_MISSING: The API Key is not configured in the environment.");
@@ -51,22 +57,41 @@ export const generateGiftIdeas = async (profile: RecipientProfile): Promise<Gift
     ? profile.customRelation
     : profile.relation;
 
+  let acquaintanceInstructions = "";
+  if (profile.isAcquaintance) {
+    acquaintanceInstructions = `
+      IMPORTANT: The user explicitly stated they do NOT know the recipient well (Acquaintance Mode).
+      
+      Strategy for Acquaintance Mode:
+      1. IGNORE niche hobbies unless specifically mentioned in 'Key Interests'.
+      2. FOCUS ON "Elevated Safe Bets": High-quality consumables (gourmet food/drink), premium office/desk accessories, neutral home decor, or universally useful tech.
+      3. AVOID: Clothing with specific sizes, highly specific fandom merchandise, or polarizing art.
+      4. The goal is to suggest gifts that are thoughtful and impressive but safe for a colleague, neighbor, or distant relative.
+    `;
+  }
+
   const prompt = `
     I need 7 specific, personalized, and purchasable gift ideas for the following person:
-    - Age: ${profile.age}
+    - Age: ${profile.age} (Consider the specific developmental stage or generation for this age)
     - Gender: ${profile.gender}
     - Relationship to giver: ${finalRelation}
     - Occasion: ${profile.occasion}
     - Taste/Style: ${profile.taste}
     - Target Budget: ${profile.budget}
     - Currency: ${profile.currency}
-    - Key Interests/Hobbies: ${profile.interests}
+    - Key Interests/Context: ${profile.interests}
     - Exclusions (DO NOT SUGGEST THESE): ${profile.exclusions || 'None'}
+
+    ${acquaintanceInstructions}
 
     Be creative. Avoid generic gift cards. Focus on items that feel personal and thoughtful.
     
     The budget is in ${profile.currency}. Please suggest items available to purchase in regions using this currency or globally available items with prices converted to ${profile.currency}.
     The 'reason' should be a single, compelling sentence connecting the gift to their specific interests and taste.
+    
+    For 'imageKeyword', provide a specific product search term that will yield high-quality product photography. 
+    - ALWAYS include the brand, model, and color. 
+    - Append "product photography" or "white background" to the keyword to ensure high-fidelity results.
     
     CRITICAL: Strictly adhere to the 'Exclusions'. Do not suggest any items that fall into the excluded categories.
   `;
